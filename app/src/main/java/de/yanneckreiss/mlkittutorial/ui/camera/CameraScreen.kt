@@ -1,6 +1,7 @@
 package de.yanneckreiss.mlkittutorial.ui.camera
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.Color
 import android.view.ViewGroup
 import android.widget.LinearLayout
@@ -13,10 +14,17 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,7 +36,9 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.startActivity
 import androidx.lifecycle.LifecycleOwner
+import de.yanneckreiss.mlkittutorial.RecognizedTextActivity
 
 @Composable
 fun CameraScreen() {
@@ -38,6 +48,8 @@ fun CameraScreen() {
 @Composable
 private fun CameraContent() {
 
+    var bitmap: android.graphics.Bitmap? = null
+    var cameraPreviewView: PreviewView? = null
     val context: Context = LocalContext.current
     val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
     val cameraController: LifecycleCameraController = remember { LifecycleCameraController(context) }
@@ -49,7 +61,17 @@ private fun CameraContent() {
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        topBar = { TopAppBar(title = { Text("Text Scanner") }) },
+        topBar = { TopAppBar(title = { Text("Quick Learning") },
+            actions = {
+                // Action items
+                IconButton(onClick = {
+                    startActivity(context, Intent(context, RecognizedTextActivity::class.java).putExtra("detected_text", detectedText), null)
+
+                }) {
+                    Icon(Icons.Filled.TextFields, contentDescription = "Text")
+                }
+
+            }) },
     ) { paddingValues: PaddingValues ->
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -70,6 +92,9 @@ private fun CameraContent() {
                         implementationMode = PreviewView.ImplementationMode.COMPATIBLE
                         scaleType = PreviewView.ScaleType.FILL_START
                     }.also { previewView ->
+                        cameraPreviewView = previewView
+                        bitmap = previewView.bitmap
+
                         startTextRecognition(
                             context = context,
                             cameraController = cameraController,
@@ -83,6 +108,7 @@ private fun CameraContent() {
 
             Text(
                 modifier = Modifier
+                    .height(100.dp)
                     .fillMaxWidth()
                     .background(androidx.compose.ui.graphics.Color.White)
                     .padding(16.dp),
@@ -108,4 +134,5 @@ private fun startTextRecognition(
 
     cameraController.bindToLifecycle(lifecycleOwner)
     previewView.controller = cameraController
+
 }
